@@ -1,3 +1,4 @@
 The data set we used for training is composed of normal and covid-19 X-Rays having 400*400 resolution 
+We used the Matlab batch processor app to resize the images 
 The data set can be found on the kaggle website 
 https://www.kaggle.com/sherykhann/covid-19-shery
