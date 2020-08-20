@@ -1,0 +1,97 @@
+% This code will train a CNN for classification of 400*400 Covid-19 xrays 
+% We used matlab image batch processor app to resize the folder of images quickly 
+
+ clc
+ clear 
+ covidDatasetPath="C:\Users\Shehryar khan\Documents\Technical\Python-Projects\Covid-19\Covidapp\train400"
+ 
+ imds = imageDatastore(covidDatasetPath, ...
+    'IncludeSubfolders',true,'LabelSource','foldernames');
+    
+    %Display some of the images in the datastore.
+figure;
+perm = randperm(100,20);
+for i = 1:20
+    subplot(4,5,i);
+    imshow(imds.Files{perm(i)});
+end
+
+labelCount = countEachLabel(imds)
+
+img = readimage(imds,1);
+size(img)
+
+%numTrainingFiles = 750;
+[imdsTrain,imdsTest] = splitEachLabel(imds,0.7);
+
+%--------------------------------------------------------------------------------------
+
+Define Network Architecture
+Define the convolutional neural network architecture.
+layers = [
+    imageInputLayer([400 400 1])
+    
+    convolution2dLayer(3,8,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    maxPooling2dLayer(2,'Stride',2)
+    
+    convolution2dLayer(3,16,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    maxPooling2dLayer(2,'Stride',2)
+    
+    convolution2dLayer(3,32,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    fullyConnectedLayer(2)
+    softmaxLayer
+    classificationLayer];
+    
+    %---------------------------------------------------------------------------------------
+    
+    options = trainingOptions('sgdm', ...
+    'InitialLearnRate',0.01, ...
+    'MaxEpochs',4, ...
+    'Shuffle','every-epoch', ...
+    'ValidationData',imdsTest, ...
+    'ValidationFrequency',30, ...
+    'Verbose',false, ...
+    'Plots','training-progress');
+    
+    %---------------------------------------------------------------------------------------
+    
+    net = trainNetwork(imdsTrain,layers,options);
+    
+    YPred = classify(net,imdsTest);
+    
+    %---------------------------------------------------------------------------------------
+    YValidation = imdsTest.Labels;
+
+accuracy = sum(YPred == YValidation)/numel(YValidation)
+
+im = im_n; % Take a picture
+im1= im_P;
+   
+image(im);% Show the picture
+
+    %im = imresize(im,[28 28]); % Resize the picture for alexnet
+    label = classify(net,im);
+imshow(im)    % Classify the picture
+    title(char(label));          % Show the class label
+    %drawnow
+    
+    
+    figure
+    
+    image(im1);% Show the picture
+
+    %im = imresize(im,[28 28]); % Resize the picture for alexnet
+    label = classify(net,im1);    % Classify the picture
+             % Show the class label
+    %drawnow
+    imshow(im1)
+    title(char(label)); 
